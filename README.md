@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# SafetyGuard Pro — 스마트 헬멧 통합 관제 대시보드 (Frontend)
 
-## Getting Started
+본 프로젝트는 IoT 스마트 헬멧의 센서 데이터(체온, 안전모 착용 압력, GPS 위치, SOS 신호)를 실시간으로 모니터링하고 작업자를 관리하기 위한 **Next.js 기반 웹 애플리케이션**입니다.
 
-First, run the development server:
+---
 
+## 🛠️ 기술 스택 (Tech Stack)
+
+*   **Framework**: Next.js (App Router)
+*   **Styling**: Tailwind CSS
+*   **Map Library**: Leaflet Map (React-Leaflet)
+*   **Icons**: Lucide Icons, Custom Inline SVG
+
+---
+
+## 🚀 시작하기 (Getting Started)
+
+### 1. 패키지 설치
+먼저 프로젝트에 필요한 패키지들을 설치합니다.
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. 로컬 개발 서버 실행
+설치가 완료되면 프론트엔드 개발 서버를 구동합니다.
+```bash
+npm run dev
+```
+개발 서버가 켜지면 브라우저에서 [http://localhost:3000](http://localhost:3000)으로 접속하여 결과를 확인할 수 있습니다.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+> [!NOTE]
+> 실시간 센서 연동 및 상태 변경을 테스트하기 위해서는 백엔드 Flask 서버(`app.py`, Port: 8000)가 정상적으로 구동되고 있어야 합니다.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 💡 주요 기능 및 화면 (Features)
 
-To learn more about Next.js, take a look at the following resources:
+대시보드는 좌측 사이드바를 통해 총 4개의 핵심 탭으로 구성되어 있습니다.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 1. 📊 실시간 모니터링 (Real-time Monitoring)
+*   **종합 현황**: 전체 등록된 작업자 수, SOS 위험 발생 건수, 주의(미착용/고온) 건수를 요약해서 시각화합니다.
+*   **실시간 관제 그리드**: 각 작업자의 상태(정상, 고온 경고, 미착용, SOS 긴급 상태)가 카드 형태로 실시간 업데이트됩니다.
+*   **다채로운 프로필 카드**: Dicebear 대신 사용자의 이름 이니셜(예: 'Hong' -> **H**)과 고유 ID에 맞춰 자동으로 할당되는 컬러 아바타 서클이 적용되어 높은 정렬 상태와 가독성을 보여줍니다.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. 🗺️ 실시간 지도 (Real-time Map)
+*   작업자가 착용한 스마트 헬멧의 GPS 수신 좌표를 기반으로 지도의 핀 마커(Marker)로 현재 위치를 표시합니다.
+*   작업자 클릭 시 해당 작업자의 세부 정보 팝업이 노출됩니다.
 
-## Deploy on Vercel
+### 3. 👥 작업자 관리 (Worker Management)
+*   신규 작업자(ID 및 이름)를 등록하고, 기존 작업자의 이름을 수정하거나 작업자를 목록에서 삭제할 수 있는 관리 테이블을 제공합니다.
+*   로컬 스토리지(`localStorage`) 기반으로 동작하여 새로고침 시에도 기존 작업자 목록 데이터가 유지됩니다.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 4. 🎛️ 센서 시뮬레이터 (Sensor Simulator)
+*   실제 ESP32 하드웨어 단말이 없더라도 가상의 센서 데이터(FSR 압력값, 체온, GPS 위경도 좌표, SOS 체크박스)를 백엔드 서버로 전송할 수 있는 개발용 테스트 패널입니다.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## ⚠️ 경고 및 위험 판단 기준 (Thresholds)
+
+스마트 헬멧 시스템은 수신된 센서 값을 기준으로 아래와 같이 실시간 경고를 발생시킵니다.
+
+*   **주의 (Warning)**
+    *   **체온**: `37.0°C` 이상인 경우 (고온 위험 상태)
+    *   **안전모 착용 압력**: `500 PSI` 미만인 경우 (안전모 미착용 상태)
+*   **위험 / SOS (Emergency)**
+    *   작업자가 헬멧의 SOS 버튼을 누르거나 긴급 상황을 발생시킨 경우 (최우선 SOS 경보 작동)
